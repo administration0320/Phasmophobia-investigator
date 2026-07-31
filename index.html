@@ -60,15 +60,33 @@ dialog[open]{animation:showModal .25s ease}
 
 .ghost-cards{display:none}
 @media (max-width:767px){
-  .table-desktop{display:none !important}
-  .ghost-cards{display:flex;flex-direction:column;gap:.75rem}
-  .ghost-card{background:#0d1117;border:1px solid #1e293b;border-radius:12px;padding:1rem;cursor:pointer;text-align:left;width:100%}
+  body{overflow-x:hidden}
+  .table-desktop,
+  #ghost-table,
+  .table-container.table-desktop{display:none !important}
+  .ghost-cards{display:flex;flex-direction:column;gap:.5rem}
+  .ghost-card{
+    background:#0d1117;border:1px solid #1e293b;border-radius:10px;
+    padding:.65rem .75rem;cursor:pointer;text-align:left;width:100%
+  }
   .ghost-card:active{background:#161b22}
-  .ghost-card .gc-name{font-family:'Oswald',sans-serif;font-size:1.25rem;color:var(--gold);margin:0 0 .5rem}
-  .ghost-card .gc-row{font-size:.8rem;margin:.25rem 0;color:#94a3b8}
-  .ghost-card .gc-row strong{color:#cbd5e1;margin-right:.35rem}
-  .ghost-card .gc-tells{font-size:.85rem;color:#94a3b8;line-height:1.4;margin-top:.5rem}
-  .ghost-card .gc-badges{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
+  .ghost-card .gc-name{
+    font-family:'Oswald',sans-serif;font-size:1.05rem;color:var(--gold);
+    margin:0 0 .35rem;line-height:1.1
+  }
+  .ghost-card .gc-badges{display:flex;flex-wrap:wrap;gap:.25rem;margin:.2rem 0}
+  .ghost-card .gc-badges span{font-size:.65rem !important;padding:.1rem .4rem !important}
+  .ghost-card .gc-meta{
+    display:flex;flex-wrap:wrap;gap:.5rem .85rem;font-size:.75rem;margin:.25rem 0;color:#94a3b8
+  }
+  .ghost-card .gc-meta strong{color:#cbd5e1;margin-right:.2rem}
+  .ghost-card .gc-tells{font-size:.75rem;color:#94a3b8;line-height:1.35;margin-top:.25rem}
+  /* tighter header/tabs on phone */
+  header h1{font-size:1.15rem !important}
+  header p{font-size:.7rem !important;margin-bottom:.5rem !important}
+  .app-tab{font-size:.65rem;padding:.5rem .55rem}
+  .evidence-btn{font-size:.65rem !important;padding:.4rem .55rem !important;min-height:36px}
+  .search-input{min-height:36px;font-size:.85rem;max-width:100%}
 }
 
 </style>
@@ -102,8 +120,8 @@ dialog[open]{animation:showModal .25s ease}
       <span class="hidden sm:inline"><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 mr-1"></span>Include <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 mr-1 ml-2"></span>Exclude · 1× / 2× / 3×</span>
       <button type="button" id="reset-filters" class="hidden ml-auto px-3 py-1.5 rounded-full text-xs font-bold uppercase font-oswald bg-slate-800 border border-slate-600 text-slate-300 min-h-[36px]">Clear All</button>
     </div>
-    <div class="table-container overflow-x-auto bg-[#0d1117] border border-gray-800 rounded-lg shadow-xl">
-      <table class="w-full text-left border-collapse min-w-[720px]" id="ghost-table">
+    <div class="table-container table-desktop overflow-x-auto bg-[#0d1117] border border-gray-800 rounded-lg shadow-xl">
+      <table class="w-full text-left border-collapse md:min-w-[720px]" id="ghost-table">
         <thead><tr>
           <th scope="col" class="p-3 md:p-4 text-gray-300 font-oswald tracking-wide uppercase text-sm">Ghost</th>
           <th scope="col" class="p-3 md:p-4 text-gray-300 font-oswald tracking-wide uppercase text-sm">Evidence</th>
@@ -320,8 +338,8 @@ function renderTable(){
         card.innerHTML =
           '<div class="gc-name">' + escapeHtml(ghost.name) + '</div>' +
           '<div class="gc-badges">' + badges + '</div>' +
-          '<div class="gc-row"><strong>Hunt</strong> <span class="txt-red">' + escapeHtml(ghost.sanity) + '</span></div>' +
-          '<div class="gc-row"><strong>Speed</strong> <span class="txt-blue">' + escapeHtml(ghost.speed) + '</span></div>' +
+          '<div class="gc-meta"><span><strong>Hunt</strong><span class="txt-red">' + escapeHtml(ghost.sanity) + '</span></span>' +
+          '<span><strong>Speed</strong><span class="txt-blue">' + escapeHtml(ghost.speed) + '</span></span></div>' +
           '<div class="gc-tells">' + escapeHtml(ghost.tells) + '</div>';
         card.addEventListener('click', function () { openModal(ghost); });
         cards.appendChild(card);
