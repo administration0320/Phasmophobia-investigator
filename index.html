@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
 <meta name="theme-color" content="#0a0c10">
 <title>Phasmophobia Investigator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,6 +57,20 @@ dialog[open]{animation:showModal .25s ease}
 .journal-prose ul{margin:.25rem 0 .75rem;padding-left:1.2rem}
 .journal-prose li{margin-bottom:.35rem;line-height:1.45}
 .journal-prose .subhead{font-family:'Oswald',sans-serif;font-size:.9rem;font-weight:700;color:#5e3a1f;margin:1rem 0 .35rem;text-transform:uppercase;letter-spacing:.04em}
+
+.ghost-cards{display:none}
+@media (max-width:767px){
+  .table-desktop{display:none !important}
+  .ghost-cards{display:flex;flex-direction:column;gap:.75rem}
+  .ghost-card{background:#0d1117;border:1px solid #1e293b;border-radius:12px;padding:1rem;cursor:pointer;text-align:left;width:100%}
+  .ghost-card:active{background:#161b22}
+  .ghost-card .gc-name{font-family:'Oswald',sans-serif;font-size:1.25rem;color:var(--gold);margin:0 0 .5rem}
+  .ghost-card .gc-row{font-size:.8rem;margin:.25rem 0;color:#94a3b8}
+  .ghost-card .gc-row strong{color:#cbd5e1;margin-right:.35rem}
+  .ghost-card .gc-tells{font-size:.85rem;color:#94a3b8;line-height:1.4;margin-top:.5rem}
+  .ghost-card .gc-badges{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
+}
+
 </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -104,6 +118,7 @@ dialog[open]{animation:showModal .25s ease}
         <button type="button" id="empty-reset" class="mt-3 text-amber-500 underline text-sm not-italic font-oswald uppercase">Clear filters</button>
       </div>
     </div>
+      <div id="ghost-cards" class="ghost-cards" aria-label="Ghost list"></div>
   </section>
 
   <section id="panel-zero" class="app-panel hidden">
@@ -262,30 +277,65 @@ function isGhostVisible(g){
   return true;
 }
 function renderTable(){
-  tbody.innerHTML='';let n=0;
-  GHOST_DATA.forEach(ghost=>{
-    if(!isGhostVisible(ghost))return;n++;
-    const tr=document.createElement('tr');tr.tabIndex=0;tr.setAttribute('role','button');
-    tr.addEventListener('click',()=>openModal(ghost));
-    tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openModal(ghost);}});
-    let evHtml='<div class="flex flex-wrap gap-1 mt-1">';
-    ghost.evidence.forEach(ev=>{
-      let badge='badge-normal',text=ev;
-      if(ghost.guaranteed&&ghost.guaranteed.includes(ev)){
-        if(ghost.name==='The Mimic'&&ev==='Ghost Orbs'){badge='badge-mimic';text='Ghost Orbs (Fake)';}
-        else{badge='badge-guaranteed';text=ev+' <span class="text-[0.65rem]">[GUARANTEED]</span>';}
+    tbody.innerHTML = '';
+    var cards = document.getElementById('ghost-cards');
+    if (cards) cards.innerHTML = '';
+    var n = 0;
+    GHOST_DATA.forEach(function (ghost) {
+      if (!isGhostVisible(ghost)) return;
+      n++;
+      var tr = document.createElement('tr');
+      tr.tabIndex = 0;
+      tr.setAttribute('role', 'button');
+      tr.addEventListener('click', function () { openModal(ghost); });
+      tr.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(ghost); }
+      });
+      var badges = '';
+      ghost.evidence.forEach(function (ev) {
+        var badge = 'badge-normal';
+        var text = ev;
+        if (ghost.guaranteed && ghost.guaranteed.indexOf(ev) !== -1) {
+          if (ghost.name === 'The Mimic' && ev === 'Ghost Orbs') {
+            badge = 'badge-mimic';
+            text = 'Ghost Orbs (Fake)';
+          } else {
+            badge = 'badge-guaranteed';
+            text = ev + ' <span class="text-[0.65rem]">[GUARANTEED]</span>';
+          }
+        }
+        badges += '<span class="' + badge + ' px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap">' + text + '</span>';
+      });
+      tr.innerHTML =
+        '<td class="p-3 md:p-4 font-oswald text-lg md:text-xl txt-gold tracking-wide">' + escapeHtml(ghost.name) + '</td>' +
+        '<td class="p-3 md:p-4 align-top"><div class="flex flex-wrap gap-1 mt-1">' + badges + '</div></td>' +
+        '<td class="p-3 md:p-4 txt-red align-top whitespace-nowrap">' + escapeHtml(ghost.sanity) + '</td>' +
+        '<td class="p-3 md:p-4 txt-blue align-top">' + escapeHtml(ghost.speed) + '</td>' +
+        '<td class="p-3 md:p-4 align-top text-gray-400 leading-snug">' + escapeHtml(ghost.tells) + '</td>';
+      tbody.appendChild(tr);
+      if (cards) {
+        var card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'ghost-card';
+        card.innerHTML =
+          '<div class="gc-name">' + escapeHtml(ghost.name) + '</div>' +
+          '<div class="gc-badges">' + badges + '</div>' +
+          '<div class="gc-row"><strong>Hunt</strong> <span class="txt-red">' + escapeHtml(ghost.sanity) + '</span></div>' +
+          '<div class="gc-row"><strong>Speed</strong> <span class="txt-blue">' + escapeHtml(ghost.speed) + '</span></div>' +
+          '<div class="gc-tells">' + escapeHtml(ghost.tells) + '</div>';
+        card.addEventListener('click', function () { openModal(ghost); });
+        cards.appendChild(card);
       }
-      evHtml+='<span class="'+badge+' px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap">'+text+'</span>';
     });
-    evHtml+='</div>';
-    tr.innerHTML='<td class="p-3 md:p-4 font-oswald text-lg md:text-xl txt-gold tracking-wide">'+ghost.name+'</td><td class="p-3 md:p-4 align-top">'+evHtml+'</td><td class="p-3 md:p-4 txt-red align-top whitespace-nowrap">'+ghost.sanity+'</td><td class="p-3 md:p-4 txt-blue align-top">'+ghost.speed+'</td><td class="p-3 md:p-4 align-top text-gray-400 leading-snug">'+ghost.tells+'</td>';
-    tbody.appendChild(tr);
-  });
-  const active=EVIDENCE_TYPES.some(e=>filterState[e]!==0)||searchQuery;
-  countEl.innerHTML='<strong class="text-gray-200">'+n+'</strong> ghost'+(n===1?'':'s')+(active?' match':'');
-  emptyState.classList.toggle('hidden',n!==0);tableEl.classList.toggle('hidden',n===0);
-  resetBtn.classList.toggle('hidden',!active);
-}
+    var active = EVIDENCE_TYPES.some(function (e) { return filterState[e] !== 0; }) || !!searchQuery;
+    countEl.innerHTML = '<strong class="text-gray-200">' + n + '</strong> ghost' + (n === 1 ? '' : 's') + (active ? ' match' : '');
+    emptyState.classList.toggle('hidden', n !== 0);
+    tableEl.classList.toggle('hidden', n === 0);
+    var wrap = document.querySelector('.table-desktop');
+    if (wrap) wrap.classList.toggle('hidden', n === 0);
+    if (cards) cards.style.display = (n === 0) ? 'none' : '';
+    resetBtn.classList.toggle('hidden', !active);
+  }
 function renderZeroGuide(){
   const grid=document.getElementById('zero-grid');grid.innerHTML='';
   ZERO_GUIDE.forEach(g=>{
